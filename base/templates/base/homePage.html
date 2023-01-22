@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+
+    <div class = "full__page" style = "height: 90vh; margin:10px;padding:10px;border:1px solid red;overflow:scroll;" id = "id_full_page" onscroll = "getHeights()">
+        {% for post in posts %}
+
+            <div id = "id_post_{{post.id}}" style = "border:1px solid black; margin:5px ; padding:5px; ">
+                <div id = "id_post_{{post.id}}_title">
+                    {{post.title}}
+                </div>
+                <hr>
+                <div id = "id_post_{{post.id}}_content">
+                    {{post.content}}
+                </div>
+            </div>
+
+        {% endfor %}
+    </div>  
+    <div id = "id_scroll_page_number" style = "display:none ; ">2</div>
+
+
+    <script type = "text/javascript" src = "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+
+    <script>
+
+        function getHeights() {
+        var container = document.getElementById("id_full_page") ; 
+        if (container.scrollTop + container.clientHeight + 20>= container.scrollHeight) {
+            var page_number = parseInt(document.getElementById("id_scroll_page_number").innerHTML) ; 
+            $.ajax({
+                "type" : "post" , 
+                "dataType" : "json" ,
+                "timeout" :5000 , 
+                "url" : "{% url 'post-loader' %}" , 
+                "data" : {
+                    "page_number" : page_number , 
+                    "csrfmiddlewaretoken" : "{{csrf_token}}" ,  
+                },
+                "success" : function(data){
+                    console.log("This was successful !") ;
+                    if (data.no_data != "no_data") {
+                    for(var i = 0 ; i < data.data.length ; i++) {
+                        var div = document.createElement("div") ; 
+                        div.id = "id_post_"+data.data[i].id ;
+                        div.style.border = "1px solid black" ; 
+                        div.style.margin = "5px" ; 
+                        div.style.padding = "5px" ; 
+                        var title = document.createElement("div") ; 
+                        title.id = "id_post_"+data.data[i].id+"_title" ; 
+                        title.innerHTML = data.data[i].title ; 
+                        div.appendChild(title) ; 
+                        div.appendChild(document.createElement("hr")) ; 
+                        var content = document.createElement("div") ; 
+                        content.id = "id_post_"+data.data[i].id+"_content" ; 
+                        content.innerHTML = data.data[i].content ; 
+                        div.appendChild(content) ; 
+                        container.appendChild(div) ; 
+                    }
+                    var page_number = document.getElementById("id_scroll_page_number") ; 
+                    page_number.innerHTML = data["new_page_number"] ; 
+                }
+                } ,
+                
+                "error" : function(data) {
+                    console.log("This gave an error !") ; 
+    
+                }
+            })
+        } 
+
+        }
+
+    </script>
+</body>
+</html>
